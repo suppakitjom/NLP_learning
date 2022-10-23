@@ -1,45 +1,42 @@
-import os
 import azure.cognitiveservices.speech as speechsdk
+import time
+from textToSpeech import speakText
 
 speech_config = speechsdk.SpeechConfig(
     subscription='44d7d58744334bea8b7c72de640ed3e3', region='southeastasia')
 speech_config.speech_recognition_language = "en-US"
 
 
-def recognize_from_microphone():
-    # This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
-
+def wakeWordActivation():
+    #if wakeword is not string or empty, return
+    model = speechsdk.KeywordRecognitionModel(
+        "e907bd72-6dff-4316-bc33-1140bffc4686.table")
+    # keyword = 'hey dude whats up'
     audio_config = speechsdk.audio.AudioConfig(use_default_microphone=True)
     speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config,
                                                    audio_config=audio_config)
+    done = False
 
-    print("Speak into your microphone.")
-    speech_recognition_result = speech_recognizer.recognize_once_async().get()
+    def exit_callback(evt):
+        if evt.result.reason == speechsdk.ResultReason.RecognizedKeyword:
+            print("RECOGNIZED KEYWORD: {}".format(evt.result.text))
+        nonlocal done
+        done = True
 
-    if speech_recognition_result.reason == speechsdk.ResultReason.RecognizedSpeech:
-        print("Recognized: {}".format(speech_recognition_result.text))
-    elif speech_recognition_result.reason == speechsdk.ResultReason.NoMatch:
-        print("No speech could be recognized: {}".format(
-            speech_recognition_result.no_match_details))
-    elif speech_recognition_result.reason == speechsdk.ResultReason.Canceled:
-        cancellation_details = speech_recognition_result.cancellation_details
-        print("Speech Recognition canceled: {}".format(
-            cancellation_details.reason))
-        if cancellation_details.reason == speechsdk.CancellationReason.Error:
-            print("Error details: {}".format(
-                cancellation_details.error_details))
-            print("Did you set the speech resource key and region values?")
+    speech_recognizer.recognized.connect(exit_callback)
+    speech_recognizer.start_keyword_recognition(model)
+    print('---START---\n')
 
+    while not done:
+        time.sleep(.5)
 
-# recognize_from_microphone()
+    speech_recognizer.stop_keyword_recognition()
 
-
-def from_mic():
-    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config)
-
-    print("Speak into your microphone.")
+    print('Go ahead, say something')
     result = speech_recognizer.recognize_once_async().get()
-    print(result.text)
+    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
+        print("Result: {}".format(result.text))
+    return result.text
 
 
-from_mic()
+speakText(wakeWordActivation())
