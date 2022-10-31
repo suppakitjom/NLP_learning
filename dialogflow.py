@@ -21,21 +21,30 @@ def detect_intent(text):
         "query_input": query_input
     })
 
-    print("=" * 40)
     # print("Query text: {}".format(response.query_result.query_text))
-    print("Detected intent: {} (confidence: {})\n".format(
+    print("---- Detected intent: {} (confidence: {}) ----".format(
         response.query_result.intent.display_name,
         response.query_result.intent_detection_confidence,
     ))
     feedback = 'Could not detect intent'
-    if response.query_result.intent.display_name == "Sum":
+    if response.query_result.intent.display_name == "Add":
         n1 = float(response.query_result.parameters['number1'])
         n2 = float(response.query_result.parameters['number2'])
         feedback = ("{} + {} equals to {}".format(n1, n2, n1 + n2))
+    elif response.query_result.intent.display_name == "Subtract":
+        n1 = float(response.query_result.parameters['number1'])
+        n2 = float(response.query_result.parameters['number2'])
+        feedback = ("{} - {} equals to {}".format(n1, n2, n1 - n2))
+    elif response.query_result.intent.display_name == "Multiply":
+        n1 = float(response.query_result.parameters['number1'])
+        n2 = float(response.query_result.parameters['number2'])
+        feedback = ("{} × {} equals to {}".format(n1, n2, n1 * n2))
+    elif response.query_result.intent.display_name == "Divide":
+        n1 = float(response.query_result.parameters['number1'])
+        n2 = float(response.query_result.parameters['number2'])
+        feedback = ("{} ÷ {} equals to {}".format(n1, n2, n1 / n2))
 
-    print(feedback)
-    print("=" * 40)
     return feedback
 
 
-detect_intent(text='Sum of 5 and 8')
+# detect_intent(text='Sum of 5 and 8')
